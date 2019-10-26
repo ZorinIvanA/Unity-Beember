@@ -229,7 +229,7 @@ BoxCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 984557787}
-  m_Enabled: 0
+  m_Enabled: 1
   m_Density: 1
   m_Material: {fileID: 0}
   m_IsTrigger: 0
@@ -246,7 +246,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 1.9, y: 0.9}
   m_EdgeRadius: 0
 --- !u!50 &984557789
 Rigidbody2D:
@@ -285,6 +285,9 @@ MonoBehaviour:
     type: 3}
   BuildingPrefab: {fileID: 7982745433456094511, guid: d377294710a801c42961aac5d3357ff8,
     type: 3}
+  ExplosionPrefab: {fileID: 6577507919361707412, guid: b4bdce845709c2c4c93bcc38aa9a88b3,
+    type: 3}
+  PlaneSpeed: 0.05
 --- !u!4 &984557791
 Transform:
   m_ObjectHideFlags: 0

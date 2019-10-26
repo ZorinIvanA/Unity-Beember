@@ -14,16 +14,18 @@ public class PlaneController : MonoBehaviour
     private GameObject _bombInstantinated;
     public GameObject BuildingPrefab;
     private GameObject[][] Buildings;
+    public GameObject ExplosionPrefab;
+    public float PlaneSpeed;
 
     private const int MAX_BUILDING_HEIGHT = 6;
     // Start is called before the first frame update
     void Start()
     {
         rigidbody = GetComponent<Rigidbody2D>();
-        planeSpeed = new Vector2(0.05f, 0);
+        planeSpeed = new Vector2(PlaneSpeed, 0);
         screenBounds = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
 
-        var buildingsCount = (int) screenBounds.x * 2;
+        var buildingsCount = (int)screenBounds.x * 2 - 3;
         print(buildingsCount);
         var buildingHeight = new System.Random(DateTime.Now.Millisecond);
         Buildings = new GameObject[buildingsCount][];
@@ -33,7 +35,7 @@ public class PlaneController : MonoBehaviour
             Buildings[i] = new GameObject[height];
             for (int j = 0; j < height; j++)
             {
-                Vector2 position = new Vector2(i - (int)screenBounds.x + 0.5f, j - screenBounds.y + 0.5f);
+                Vector2 position = new Vector2(i - (int)screenBounds.x + 2.5f, j - screenBounds.y + 0.5f);
                 Buildings[i][j] = Instantiate(BuildingPrefab, position, Quaternion.identity);
             }
         }
@@ -68,5 +70,12 @@ public class PlaneController : MonoBehaviour
             newPosition.y -= 1;
         }
         transform.position = newPosition;
+    }
+
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        Instantiate(ExplosionPrefab, collision.transform.position, Quaternion.identity);
+        Destroy(gameObject);
+        Destroy(collision.gameObject);
     }
 }
