@@ -1,15 +1,15 @@
 ﻿using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using System;
+using Beember.Beember.Assets.Scripts;
 
 public class PlaneController : MonoBehaviour
 {
     private Rigidbody2D rigidbody;
     private Vector2 planeSpeed;
     private Vector2 screenBounds;
-    private Camera camera;
     private bool _isBombFalling;
-    private const string BOMB_AXIS_NAME = "Submit";
+    private const string BOMB_AXIS_NAME = "Fire3";
     public GameObject BombPrefab;
     private GameObject _bombInstantinated;
     public GameObject BuildingPrefab;
@@ -17,21 +17,21 @@ public class PlaneController : MonoBehaviour
     public GameObject ExplosionPrefab;
     public float PlaneSpeed;
 
-    private const int MAX_BUILDING_HEIGHT = 6;
     // Start is called before the first frame update
     void Start()
     {
+        var maxBuildingHeight = PlayerPrefs.GetInt("difficult");
+        print($"difficult {maxBuildingHeight}");
         rigidbody = GetComponent<Rigidbody2D>();
         planeSpeed = new Vector2(PlaneSpeed, 0);
         screenBounds = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
 
         var buildingsCount = (int)screenBounds.x * 2 - 3;
-        print(buildingsCount);
         var buildingHeight = new System.Random(DateTime.Now.Millisecond);
         Buildings = new GameObject[buildingsCount][];
         for (int i = 0; i < buildingsCount; i++)
         {
-            var height = buildingHeight.Next(MAX_BUILDING_HEIGHT);
+            var height = buildingHeight.Next(maxBuildingHeight);
             Buildings[i] = new GameObject[height];
             for (int j = 0; j < height; j++)
             {
