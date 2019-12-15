@@ -8,6 +8,19 @@ using UnityEngine.UI;
 public class MainMenuController : MonoBehaviour
 {
     public Text DiffValueText;
+    public AudioSource MenuSource;
+    public AudioClip MenuClip;
+
+    public void Start()
+    {
+        MenuSource.clip = MenuClip;
+    }
+
+    public void Update()
+    {
+        if (!MenuSource.isPlaying)
+            MenuSource.Play();
+    }
 
     public void UpdateDifficult(float value)
     {
@@ -19,5 +32,15 @@ public class MainMenuController : MonoBehaviour
     {
         print($"input difficult {PlayerPrefs.GetInt("difficult")}");
         SceneManager.LoadScene("LevelScene");
+    }
+
+    public void LoadManual()
+    {
+        SceneManager.LoadScene("ManualScene");
+    }
+
+    public void LoadAbout()
+    {
+        SceneManager.LoadScene("AboutScene");
     }
 }

@@ -14,4 +14,16 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/LevelScene.unity
     guid: addb184f337f40744b3c7281b9cedf76
+  - enabled: 0
+    path: Assets/Scenes/DefeatScene.unity
+    guid: f83a063551f9268488082a0d4be67214
+  - enabled: 0
+    path: Assets/Scenes/WinScene.unity
+    guid: 906804fd93522c64799cdcba022c0fef
+  - enabled: 0
+    path: Assets/Scenes/ManualScene.unity
+    guid: 1f2fde296eeb1b54aae92aaff2cc3b74
+  - enabled: 0
+    path: Assets/Scenes/AboutScene.unity
+    guid: 06e30bc20ee0fe447aa7d1838b04b047
   m_configObjects: {}
