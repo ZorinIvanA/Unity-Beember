@@ -21,8 +21,6 @@ public class BackgroundScript : MonoBehaviour
         sprite.sprite = sprites[r.Next(0, 3)];
         sprite.drawMode = SpriteDrawMode.Sliced;
         sprite.size = new Vector2(16, 12);
-
-
     }
 
     // Update is called once per frame
