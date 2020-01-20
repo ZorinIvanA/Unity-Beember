@@ -7,10 +7,21 @@ public class BombController : MonoBehaviour
     public GameObject ExplosionPrefab;
     private Vector3 screenBounds;
     private bool _isAlreadyBombed;
+    public AudioSource BombAudioSource;
+    public AudioClip BombFall;
+    public AudioClip Explosion;
     void Start()
     {
         screenBounds = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
+        BombAudioSource.clip = BombFall;
     }
+
+    void Update()
+    {
+        if (!BombAudioSource.isPlaying)
+            BombAudioSource.Play();
+    }
+
     void LateUpdate()
     {
         var size = transform.lossyScale;
@@ -29,9 +40,15 @@ public class BombController : MonoBehaviour
         if (!_isAlreadyBombed)
         {
             _isAlreadyBombed = true;
-            Instantiate(ExplosionPrefab, collision.transform.position, Quaternion.identity);
+            var blastPosition = collision.transform.position;
+            blastPosition.z = -1;
+            var explosion = Instantiate(ExplosionPrefab, blastPosition,
+                Quaternion.identity);
+            print($"transform position is {blastPosition.x}:{blastPosition.y}:{blastPosition.z}");
+            explosion.layer = collision.transform.gameObject.layer;
             Destroy(gameObject);
             Destroy(collision.gameObject);
+            BombAudioSource.Stop();
         }
     }
 }
