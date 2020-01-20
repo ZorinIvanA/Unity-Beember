@@ -1,10 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Threading;
-using Beember.Beember.Assets.Scripts;
-using UnityEngine;
-using UnityEngine.Experimental.PlayerLoop;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -19,8 +13,6 @@ public class MainMenuController : MonoBehaviour
     {
         MenuSource.clip = MenuClip;
         PlayerPrefs.SetString("CurrentLanguage", "ru-RU");
-        //LanguageDropDown = GetComponent<Dropdown>();
-        //LanguageDropDown.onValueChanged.AddListener(delegate { DropdownValueChanged(LanguageDropDown); });
     }
 
     public void DropdownValueChanged(Dropdown change)

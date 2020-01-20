@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Beember.Beember.Assets.Scripts;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class PlaneController : MonoBehaviour
 {
@@ -24,49 +25,57 @@ public class PlaneController : MonoBehaviour
     public float PlaneSpeed;
     public AudioSource PlaneAudioSource;
     public AudioClip PlaneClip;
+    private int totalBlocks = 0;
+    private int remainsBlocks = 0;
+    private Text scoresText;
 
     private bool isDefeated = false;
     // Start is called before the first frame update
     void Start()
     {
-        var maxBuildingHeight = PlayerPrefs.GetInt("difficult");
-        print($"difficult {maxBuildingHeight}");
-        rigidbody = GetComponent<Rigidbody2D>();
-        planeSpeed = new Vector2(PlaneSpeed, 0);
-        screenBounds = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
 
-        var buildingsCount = (int)screenBounds.x * 2 - 3;
-        var buildingHeight = new System.Random(DateTime.Now.Millisecond);
-        Buildings = new GameObject[buildingsCount][];
-        for (int i = 0; i < buildingsCount; i++)
-        {
-            var height = buildingHeight.Next(maxBuildingHeight) + 1;
-            Buildings[i] = new GameObject[height];
-            for (int j = 0; j < height; j++)
+            var maxBuildingHeight = PlayerPrefs.GetInt("difficult");
+            print($"difficult {maxBuildingHeight}");
+            rigidbody = GetComponent<Rigidbody2D>();
+            planeSpeed = new Vector2(PlaneSpeed, 0);
+            screenBounds = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
+
+            var buildingsCount = (int)screenBounds.x * 2 - 3;
+            var buildingHeightRandom = new System.Random(DateTime.Now.Millisecond);
+            Buildings = new GameObject[buildingsCount][];
+            for (int i = 0; i < buildingsCount; i++)
             {
-                Vector2 position = new Vector2(i - (int)screenBounds.x + 2.5f, j - screenBounds.y + 0.5f);
-                Buildings[i][j] = Instantiate(BuildingPrefab, position, Quaternion.identity);
-            }
-        }
+                var height = buildingHeightRandom.Next(maxBuildingHeight) + 1;
+                Buildings[i] = new GameObject[height];
+                for (int j = 0; j < height; j++)
+                {
+                    Vector2 position = new Vector2(i - (int)screenBounds.x + 2.5f, j - screenBounds.y + 0.5f);
+                    Buildings[i][j] = Instantiate(BuildingPrefab, position, Quaternion.identity);
+                }
 
-        PlaneAudioSource.clip = PlaneClip;
+                totalBlocks += height;
+            }
+
+            PlaneAudioSource.clip = PlaneClip;
     }
 
     // Update is called once per frame
     void Update()
     {
-        Vector2 newPosition = rigidbody.position + planeSpeed;
-        rigidbody.MovePosition(newPosition);
+        if (GetComponent<Canvas>() == null)
+        {
+            Vector2 newPosition = rigidbody.position + planeSpeed;
+            rigidbody.MovePosition(newPosition);
+        }
 
-        float bombTrhow = Input.GetAxis(BOMB_AXIS_NAME);
-        if (bombTrhow != 0 && !_isBombFalling)
+        float bombThrow = Input.GetAxis(BOMB_AXIS_NAME);
+        if (bombThrow != 0 && !_isBombFalling)
         {
             var size = transform.lossyScale;
             _isBombFalling = true;
             Vector3 bombCoords = new Vector3(transform.position.x + size.x / 2,
                 transform.position.y - size.y / 2 - 0.1f, transform.position.z);
             _bombInstantinated = Instantiate(BombPrefab, bombCoords, transform.rotation);
-
         }
 
         if (_bombInstantinated == null)
@@ -74,11 +83,13 @@ public class PlaneController : MonoBehaviour
 
         if (!PlaneAudioSource.isPlaying)
             PlaneAudioSource.Play();
+
+        PlayerPrefs.SetString("DestroyedBlocks", $"{remainsBlocks}/{totalBlocks}");
     }
 
     void LateUpdate()
     {
-        //print($"Buildings number is {Buildings?.Count(x => x.Any(y => y != null))}, plane coords is {transform.position.x}, {transform.position.y}");
+        remainsBlocks = CountBuildings();
 
         if (Buildings.Count(x => x.Any(y => y != null)) == 0)
         {
@@ -94,6 +105,17 @@ public class PlaneController : MonoBehaviour
         }
 
         transform.position = newPosition;
+    }
+
+    private int CountBuildings()
+    {
+        int result = 0;
+        foreach (var building in Buildings)
+        {
+            result += building.Count(x => x != null);
+        }
+
+        return result;
     }
 
     private void Land()
@@ -115,9 +137,12 @@ public class PlaneController : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collisionObject)
     {
-        Instantiate(ExplosionPrefab, collisionObject.transform.position, Quaternion.identity);
-        if (!isDefeated)
-            StartCoroutine(LoadLevelAfterDelay(2.0f, collisionObject));
+        if (collisionObject.rigidbody != null)
+        {
+            Instantiate(ExplosionPrefab, collisionObject.transform.position, Quaternion.identity);
+            if (!isDefeated)
+                StartCoroutine(LoadLevelAfterDelay(2.0f, collisionObject));
+        }
     }
 
     IEnumerator LoadLevelAfterDelay(float delay, Collision2D collisionObject)
@@ -125,7 +150,6 @@ public class PlaneController : MonoBehaviour
         isDefeated = true;
         Destroy(collisionObject.gameObject);
         Destroy(transform.gameObject);
-        //gameObject.GetComponentInChildren<MeshRenderer>().enabled = false;
         yield return new WaitForSeconds(delay);
         print("defeat");
         SceneManager.LoadScene("DefeatScene");
