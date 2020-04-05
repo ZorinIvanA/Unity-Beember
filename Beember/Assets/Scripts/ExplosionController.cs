@@ -13,7 +13,6 @@ public class ExplosionController : MonoBehaviour
         BombAudioSource.clip = Explosion;
         GetComponent<Renderer>().sortingLayerName = "blast";
         GetComponent<Renderer>().sortingOrder = 10;
-        print($"blast layer is {GetComponent<Renderer>().sortingLayerID}");
     }
 
     // Update is called once per frame

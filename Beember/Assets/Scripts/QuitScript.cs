@@ -11,9 +11,6 @@ public class QuitScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {        
-        QuitEvent = new UnityEvent();
-        QuitEvent.AddListener(QuitApplication);
-        QuitEvent.Invoke();
     }
 
     public void QuitApplication()

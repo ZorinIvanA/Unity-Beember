@@ -3,6 +3,7 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Beember.Beember.Assets.Scripts;
@@ -11,6 +12,11 @@ using UnityEngine.UI;
 
 public class PlaneController : MonoBehaviour
 {
+    private const int BUILDINGS_COUNT = 13; //Количество зданий по горизонтали
+    private const float SCREEN_WIDTH = 16;  //Ширина экрана в блоках (два слева и один справа отсутствуют)
+    private const float SCREEN_HEIGHT = 10; //Высота экрана в блоках. 6 блоков под здания, три под самолёт, один - под служебную информацию.
+    private const float BLOCK_SIZE = 1f;    //Размер блока
+
     private Rigidbody2D rigidbody;
     private Vector2 planeSpeed;
     private Vector2 screenBounds;
@@ -33,30 +39,44 @@ public class PlaneController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        var leftPosition = -BUILDINGS_COUNT * BLOCK_SIZE / 2 + 1;   //2 блока от левого края
+        var maxBuildingHeight = PlayerPrefs.GetInt("difficult");
+        isDefeated = false;
 
-            var maxBuildingHeight = PlayerPrefs.GetInt("difficult");
-            print($"difficult {maxBuildingHeight}");
-            rigidbody = GetComponent<Rigidbody2D>();
-            planeSpeed = new Vector2(PlaneSpeed, 0);
-            screenBounds = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
+        rigidbody = GetComponent<Rigidbody2D>();
+        rigidbody.position = new Vector2(leftPosition - 1.5f, -4 * BLOCK_SIZE);
+        planeSpeed = new Vector2(PlaneSpeed, 0);
+        Debug.Log($"Экран {Screen.width}:{Screen.height}");
+        screenBounds = Camera.main.ScreenToWorldPoint(new Vector2(Camera.main.pixelWidth, Camera.main.pixelHeight));
+        //screenBounds = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
 
-            var buildingsCount = (int)screenBounds.x * 2 - 3;
-            var buildingHeightRandom = new System.Random(DateTime.Now.Millisecond);
-            Buildings = new GameObject[buildingsCount][];
-            for (int i = 0; i < buildingsCount; i++)
+        InitializePlane();
+
+
+        var buildingHeightRandom = new System.Random(DateTime.Now.Millisecond);
+        var positionFromBottom = screenBounds.y - BLOCK_SIZE / 2;
+        Buildings = new GameObject[BUILDINGS_COUNT][];
+        for (int i = 0; i < BUILDINGS_COUNT; i++)
+        {
+            var height = buildingHeightRandom.Next(maxBuildingHeight) + 1;
+            Buildings[i] = new GameObject[height];
+            var currentX = leftPosition + BLOCK_SIZE * i;
+            for (int j = 0; j < height; j++)
             {
-                var height = buildingHeightRandom.Next(maxBuildingHeight) + 1;
-                Buildings[i] = new GameObject[height];
-                for (int j = 0; j < height; j++)
-                {
-                    Vector2 position = new Vector2(i - (int)screenBounds.x + 2.5f, j - screenBounds.y + 0.5f);
-                    Buildings[i][j] = Instantiate(BuildingPrefab, position, Quaternion.identity);
-                }
-
-                totalBlocks += height;
+                //Расчитываем положение от середины экрана
+                Vector2 position = new Vector2(currentX, j - positionFromBottom);
+                Buildings[i][j] = Instantiate(BuildingPrefab, position, Quaternion.identity);
             }
 
-            PlaneAudioSource.clip = PlaneClip;
+            totalBlocks += height;
+        }
+
+        PlaneAudioSource.clip = PlaneClip;
+    }
+
+    private void InitializePlane()
+    {
+        transform.position = new Vector2(-BUILDINGS_COUNT * BLOCK_SIZE / 2 - BLOCK_SIZE, screenBounds.y - 1.8f);
     }
 
     // Update is called once per frame
@@ -98,9 +118,9 @@ public class PlaneController : MonoBehaviour
         }
 
         var newPosition = transform.position;
-        if (newPosition.x >= screenBounds.x + 1.5f)
+        if (newPosition.x >= BUILDINGS_COUNT * BLOCK_SIZE / 2 + BLOCK_SIZE * 0.75f)
         {
-            newPosition.x = -7f;
+            newPosition.x = -BUILDINGS_COUNT * BLOCK_SIZE / 2 - BLOCK_SIZE;
             newPosition.y -= 1;
         }
 
@@ -122,13 +142,13 @@ public class PlaneController : MonoBehaviour
     {
         print("Landing!");
         var newPosition = transform.position;
-        if (newPosition.x >= screenBounds.x + 1.5f)
+        if (newPosition.x >= BUILDINGS_COUNT * BLOCK_SIZE / 2 + 0.5f)
         {
             var landLevel = -screenBounds.y + transform.lossyScale.y / 2;
             if (newPosition.y == landLevel)
                 SceneManager.LoadScene("WinScene");
 
-            newPosition.x = -7f;
+            newPosition.x = -BUILDINGS_COUNT * BLOCK_SIZE / 2 - 1.0f;
             newPosition.y = landLevel;
         }
 
@@ -137,22 +157,19 @@ public class PlaneController : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collisionObject)
     {
-        if (collisionObject.rigidbody != null)
+        Instantiate(ExplosionPrefab, collisionObject.transform.position, Quaternion.identity);
+        if (!isDefeated)
         {
-            Instantiate(ExplosionPrefab, collisionObject.transform.position, Quaternion.identity);
-            if (!isDefeated)
-                StartCoroutine(LoadLevelAfterDelay(2.0f, collisionObject));
+            Destroy(collisionObject.gameObject);
+            StartCoroutine(LoadLevelAfterDelay(2f));
+            GetComponentInChildren<SpriteRenderer>().enabled = false;
         }
     }
 
-    IEnumerator LoadLevelAfterDelay(float delay, Collision2D collisionObject)
+    private IEnumerator LoadLevelAfterDelay(float delay)
     {
-        isDefeated = true;
-        Destroy(collisionObject.gameObject);
-        Destroy(transform.gameObject);
         yield return new WaitForSeconds(delay);
-        print("defeat");
-        SceneManager.LoadScene("DefeatScene");
+        SceneManager.LoadScene("DefeatScene", LoadSceneMode.Single);
+        Destroy(transform.gameObject);
     }
-
 }

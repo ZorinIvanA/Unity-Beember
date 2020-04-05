@@ -13,6 +13,7 @@ public class MainMenuController : MonoBehaviour
     {
         MenuSource.clip = MenuClip;
         PlayerPrefs.SetString("CurrentLanguage", "ru-RU");
+        PlayerPrefs.SetInt("difficult", 3);
     }
 
     public void DropdownValueChanged(Dropdown change)
@@ -56,7 +57,6 @@ public class MainMenuController : MonoBehaviour
 
     public void StartGame()
     {
-        print($"input difficult {PlayerPrefs.GetInt("difficult")}");
         SceneManager.LoadScene("LevelScene");
     }
 

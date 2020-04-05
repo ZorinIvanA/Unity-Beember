@@ -14,7 +14,6 @@ public class ScoresController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        print($"Destroyed: {PlayerPrefs.GetString("DestroyedBlocks")}");
         _scoresData.text = PlayerPrefs.GetString("DestroyedBlocks");
     }
 }
