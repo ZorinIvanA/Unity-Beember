@@ -13,8 +13,6 @@ using UnityEngine.UI;
 public class PlaneController : MonoBehaviour
 {
     private const int BUILDINGS_COUNT = 13; //Количество зданий по горизонтали
-    private const float SCREEN_WIDTH = 16;  //Ширина экрана в блоках (два слева и один справа отсутствуют)
-    private const float SCREEN_HEIGHT = 10; //Высота экрана в блоках. 6 блоков под здания, три под самолёт, один - под служебную информацию.
     private const float BLOCK_SIZE = 1f;    //Размер блока
 
     private Rigidbody2D rigidbody;
@@ -34,6 +32,7 @@ public class PlaneController : MonoBehaviour
     private int totalBlocks = 0;
     private int remainsBlocks = 0;
     private Text scoresText;
+    private bool _isLanding = false;
 
     private bool isDefeated = false;
     // Start is called before the first frame update
@@ -46,12 +45,14 @@ public class PlaneController : MonoBehaviour
         rigidbody = GetComponent<Rigidbody2D>();
         rigidbody.position = new Vector2(leftPosition - 1.5f, -4 * BLOCK_SIZE);
         planeSpeed = new Vector2(PlaneSpeed, 0);
-        Debug.Log($"Экран {Screen.width}:{Screen.height}");
         screenBounds = Camera.main.ScreenToWorldPoint(new Vector2(Camera.main.pixelWidth, Camera.main.pixelHeight));
-        //screenBounds = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
+
+        var middlePosition = new Vector2(screenBounds.x / 2, screenBounds.y / 2);
+        var scoresPosition = new Vector2(middlePosition.x + BLOCK_SIZE * 5, middlePosition.y);
+        PlayerPrefs.SetString("ScoresPosition", $"{scoresPosition.x}:{scoresPosition.y}");
 
         InitializePlane();
-
+        var blockSizes = Camera.main.WorldToScreenPoint(new Vector2(BLOCK_SIZE, BLOCK_SIZE));
 
         var buildingHeightRandom = new System.Random(DateTime.Now.Millisecond);
         var positionFromBottom = screenBounds.y - BLOCK_SIZE / 2;
@@ -89,7 +90,7 @@ public class PlaneController : MonoBehaviour
         }
 
         float bombThrow = Input.GetAxis(BOMB_AXIS_NAME);
-        if (bombThrow != 0 && !_isBombFalling)
+        if (bombThrow != 0 && !_isBombFalling && !_isLanding)
         {
             var size = transform.lossyScale;
             _isBombFalling = true;
@@ -141,6 +142,7 @@ public class PlaneController : MonoBehaviour
     private void Land()
     {
         print("Landing!");
+        _isLanding = true;
         var newPosition = transform.position;
         if (newPosition.x >= BUILDINGS_COUNT * BLOCK_SIZE / 2 + 0.5f)
         {

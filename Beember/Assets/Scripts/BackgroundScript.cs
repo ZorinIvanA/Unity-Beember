@@ -18,7 +18,14 @@ public class BackgroundScript : MonoBehaviour
         Random r = new Random(DateTime.Now.Millisecond);
         sprite.sprite = sprites[r.Next(0, 3)];
         sprite.drawMode = SpriteDrawMode.Sliced;
-        sprite.size = new Vector2(16, 12);
+        sprite.size = new Vector2(16f, 12f);
+
+        PlayerPrefs.SetFloat("SceneLeft", sprite.transform.position.x);
+        PlayerPrefs.SetFloat("SceneTop", sprite.transform.position.y);
+        Debug.Log($"Sprite position {sprite.transform.position.x}:{sprite.transform.position.y}");
+        PlayerPrefs.SetFloat("SceneWidth", sprite.size.x);
+        PlayerPrefs.SetFloat("SceneHeight", sprite.size.y);
+        Debug.Log($"Sprite size {sprite.size.x}:{sprite.size.y}");
     }
 
     // Update is called once per frame

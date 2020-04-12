@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
 public class BombController : MonoBehaviour
 {
@@ -6,18 +7,24 @@ public class BombController : MonoBehaviour
     private Vector3 screenBounds;
     private bool _isAlreadyBombed;
     public AudioSource BombAudioSource;
+    public AudioSource ExplosionAudioSource;
     public AudioClip BombFall;
     public AudioClip Explosion;
+
     void Start()
     {
         screenBounds = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
         BombAudioSource.clip = BombFall;
+        if (!BombAudioSource.isPlaying)
+            BombAudioSource.Play();
+        //_explosion = Instantiate(ExplosionPrefab, transform.position, Quaternion.identity);
+        //var audioSource = _explosion.GetComponentInChildren<AudioSource>();
+        //audioSource.clip.LoadAudioData();
     }
 
     void Update()
     {
-        if (!BombAudioSource.isPlaying)
-            BombAudioSource.Play();
+
     }
 
     void LateUpdate()
@@ -28,7 +35,7 @@ public class BombController : MonoBehaviour
             var rigidBody = GetComponent<Rigidbody2D>();
             rigidBody.gravityScale = 0;
             rigidBody.velocity = new Vector2(0, 0);
-            Instantiate(ExplosionPrefab, transform.position, Quaternion.identity);
+            StartCoroutine(Anim(transform.position));
             Destroy(gameObject);
         }
     }
@@ -38,15 +45,19 @@ public class BombController : MonoBehaviour
         if (!_isAlreadyBombed)
         {
             _isAlreadyBombed = true;
-            var blastPosition = collision.transform.position;
-            blastPosition.z = -1;
-            var explosion = Instantiate(ExplosionPrefab, blastPosition,
-                Quaternion.identity);
-            print($"transform position is {blastPosition.x}:{blastPosition.y}:{blastPosition.z}");
-            explosion.layer = collision.transform.gameObject.layer;
+
+            StartCoroutine(Anim(collision.transform.position));
+
+            GetComponent<Renderer>().enabled = false;
             Destroy(gameObject);
             Destroy(collision.gameObject);
-            BombAudioSource.Stop();
         }
     }
+
+    IEnumerator Anim(Vector2 position)
+    {
+        var explosion = Instantiate(ExplosionPrefab, position, Quaternion.identity);
+        yield return null;
+    }
+
 }
